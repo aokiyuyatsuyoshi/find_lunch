@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1055825166159",
+    "project_id": "search-shop-58a9d",
+    "storage_bucket": "search-shop-58a9d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1055825166159:android:9f8c1c5cc445b0b2584f3a",
+        "android_client_info": {
+          "package_name": "com.example.search_shop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1055825166159-os9fuq1v1svefiu8rj14luqvog89tqco.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpFM6xIGzoOKp7ePRyzGAWnMKg1fMFwSU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1055825166159-os9fuq1v1svefiu8rj14luqvog89tqco.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1055825166159-fbdidbm91boqlffpsdn0ts56198gbm42.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.searchShop"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
