@@ -8,7 +8,11 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="search_shop"
+        android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDjc4jYmaH8rrwQ2neDRdpY4kvHLiXcxTY"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

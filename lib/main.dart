@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:search_shop/book_list_page.dart';
 import 'package:search_shop/login_view.dart';
 import 'package:search_shop/main_model.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp();
   runApp(MyApp());
 }
 

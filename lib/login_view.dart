@@ -6,8 +6,14 @@ import 'package:search_shop/main_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'post_users.dart';
 import 'home_users_page.dart';
+import 'map_view.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'post.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(login_view());
 }
 
@@ -17,6 +23,10 @@ class login_view extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      initialRoute: '/',
+      routes: {
+        '/add_post': (_) => new add_post(),
+      },
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -37,21 +47,30 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   //bottombarを使う時に必要
   int _selectedIndex = 0;
+  GoogleMapController mapController;
+
   // 表示する Widget の一覧
-  static List<Widget> _pageList = [
-    post_users(),
-    home_users_page(),
-    post_users()
-  ];
+  static List<Widget> _pageList = [post_users(), example1()];
   //これでwidgetは動的なサイズになる
   //MediaQuery.of(context).size.width * 0.65
+  void _onMapCreated(GoogleMapController controller) {
+    setState(() {
+      mapController = controller;
+      mapController.animateCamera(CameraUpdate.newCameraPosition(
+        const CameraPosition(
+          target: LatLng(33.52101735482, 130.4580783311),
+          zoom: 12.0,
+        ),
+      ));
+    });
+  }
 
   //円形の画像
   Widget _userIconImage() {
     return new Container(
 //        color: Colors.green,
-        width: MediaQuery.of(context).size.width * 0.15,
-        height: MediaQuery.of(context).size.height * 0.15,
+        width: MediaQuery.of(context).size.width * 0.08,
+        height: MediaQuery.of(context).size.height * 0.08,
         decoration: new BoxDecoration(
             shape: BoxShape.circle,
             image: new DecorationImage(
@@ -61,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //円形の画像と誰が投稿したか表示するウィジェット
-  Widget _userIconAndName() {
+  Widget _userIconAndName(String name) {
     return Row(
 //      mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -70,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.all(10),
         ),
         Text(
-          "橋本環奈",
+          name,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,
@@ -88,22 +107,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //投稿した写真
-  Widget _postPicture() {
+  Widget _postPicture(String post_picture) {
     return Image.network(
-        "https://www.fujitv-view.jp/tachyon/2021/01/M_006.jpg?resize=1536,864&crop=0px,0px,1920px,1080px");
+      post_picture,
+    );
   }
 
   //位置情報を表示する
-  Widget _location() {
+  Widget _location(String location) {
     return Row(
 //      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           Icons.location_on_rounded,
           size: 30,
+          color: Colors.red,
         ),
         Text(
-          "関西学院大学三田キャンパス",
+          location,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,
@@ -114,9 +135,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //投稿内容
-  Widget _context() {
+  Widget _context(String context) {
     return Text(
-      '''　最近Go言語とGCPばっかり触っていてFlutterを書く機会がなかったので、今回はFlutterとFirebaseによるSNSを作ろうと思います！認証機能にはfirebase Auth、データベースにはFireStore、マップにはGoogle Maps SDKを使用します！会社の人たちに使ってもらえるようにがんばります！アーキテクチャはMVVM予定しています（この画面はStatefulwidgetなのでテストきつい）''',
+      context,
       style: TextStyle(
         fontWeight: FontWeight.normal,
         fontSize: 15,
@@ -124,7 +145,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _GoodAndComment() {
+  Widget _GoodAndComment(int good) {
+    String str_good;
+    str_good = good.toString();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -133,7 +156,16 @@ class _MyHomePageState extends State<MyHomePage> {
             Icons.tag_faces,
             color: Colors.white,
           ),
-          label: const Text('good!!!'),
+          label: Row(
+            children: [
+              const Text(
+                'good!!!',
+              ),
+              Text(
+                str_good,
+              ),
+            ],
+          ),
           onPressed: () {},
           splashColor: Colors.purple,
           color: Colors.green,
@@ -151,6 +183,21 @@ class _MyHomePageState extends State<MyHomePage> {
           textColor: Colors.white,
         ),
       ],
+    );
+  }
+
+  //投稿を追加する width: MediaQuery.of(context).size.width * 0.5,
+  Widget add_post() {
+    return ButtonTheme(
+      child: FloatingActionButton.extended(
+        tooltip: 'Action!',
+        icon: Icon(Icons.add), //アイコンは無しでもOK
+        label: Text('New Post'),
+        onPressed: () {
+          Navigator.of(context).pushNamed('/add_post');
+        },
+        splashColor: Colors.purple,
+      ),
     );
   }
 
@@ -173,15 +220,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _userIconAndName(), //Rowにて（画像：投稿者）を表示
+                        _userIconAndName(
+                          document['author'],
+                        ), //Rowにて（画像：投稿者）を表示
                         Container(
                           width: MediaQuery.of(context).size.width * 1.0,
                           height: MediaQuery.of(context).size.width * 0.6,
-                          child: _postPicture(),
+                          child: _postPicture(document['post-picture']),
                         ),
-                        _location(),
-                        _context(),
-                        _GoodAndComment()
+                        _location(document['location']),
+                        _context(document['context']),
+                        _GoodAndComment(document['good'])
                       ],
                     );
                   }).toList(),
@@ -189,14 +238,13 @@ class _MyHomePageState extends State<MyHomePage> {
               );
               break;
             case 1:
-              return Text("2");
-              break;
-            case 2:
-              return Text("3");
+              return example1();
               break;
           }
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: add_post(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -206,10 +254,6 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             title: Text('店を探す'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('マイページ'),
           ),
         ],
         currentIndex: _selectedIndex,
