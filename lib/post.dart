@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'login_view.dart';
 
 class add_post extends StatelessWidget {
   // This widget is the root of your application.
@@ -11,6 +12,10 @@ class add_post extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      initialRoute: '/',
+      routes: {
+        '/login_view': (_) => new login_view(),
+      },
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -53,14 +58,33 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
+
+        print("image path is----->");
+        print(_image);
       } else {
         print('No image selected.');
       }
     });
   }
 
-  Future<String> uproadURL() async {
-    return "ff";
+  _uproadURL() async {
+    print("debug1");
+    var storage = FirebaseStorage.instance;
+    print("debug2");
+
+//    TaskSnapshot snapshot =
+//        await storage.ref().child("books/$post_name").putFile(_image);
+//    print("debug3");
+//    final String downloadUrl = await snapshot.ref.getDownloadURL();
+//    print("debug4");
+//    return "https://dy1ar1zj7xlg8.cloudfront.net/wp-content/uploads/2019/10/70aa6564c1bba96149d348036d0ca931.jpg";
+
+    final ref = storage.ref().child('books').child(post_name);
+    final snapshot = await ref.putFile(
+      _image,
+    );
+    final downloadURL = await snapshot.ref.getDownloadURL();
+    return downloadURL;
   }
 
   //イメージピッカーのウィジェット
@@ -91,6 +115,38 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  dialog() {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.black.withOpacity(0.3),
+          content: Text(
+            'ご投稿ありがとうございました！!',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.white,
+            ),
+          ),
+          actions: <Widget>[
+            RaisedButton(
+              child: Text(
+                "戻る",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              elevation: 16.0,
+              color: Colors.orange.withOpacity(0.8),
+              splashColor: Colors.purple,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -125,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Icon(Icons.add),
                             style: ElevatedButton.styleFrom(
                               primary: Colors.white,
-                              onPrimary: Colors.white,
+                              onPrimary: Colors.blue,
                             ),
                             onPressed: getImage,
                           ),
@@ -195,13 +251,33 @@ class _MyHomePageState extends State<MyHomePage> {
                       primary: Colors.green,
                       onPrimary: Colors.white,
                     ),
-                    onPressed: () {
-                      Firestore.instance.collection('book').add({
+                    onPressed: () async {
+                      print("onpressed is occured");
+                      //firebase storageからアップロードされたやつ
+                      String uproad_picture_url = await _uproadURL();
+
+                      print("uproad_picture_url is ↓");
+                      print(uproad_picture_url);
+                      print("post name is ↓");
+                      print(post_name);
+                      print("post context is ↓");
+                      print(post_context);
+                      print("post location  is ↓");
+                      print(post_location);
+
+//                          "https://dy1ar1zj7xlg8.cloudfront.net/wp-content/uploads/2019/10/70aa6564c1bba96149d348036d0ca931.jpg";
+                      //ここでbookコレクションに新しいデータセットを作成
+                      FirebaseFirestore.instance.collection('books').add({
                         "author": post_name,
                         "context": post_context,
                         "location": post_location,
-                        "post-picture": post_picture,
+                        "good": 0,
+                        "post-picture": uproad_picture_url,
                       });
+
+                      Navigator.of(context).pushNamed('/login_view');
+                      //ありがとうございましたのダイアログを表示
+                      dialog();
                     },
                   ),
                 )
@@ -215,23 +291,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class FileController {
-//storageに保存
-  static void upload(File file) async {
-    final StorageReference ref = FirebaseStorage.instance.ref();
-    final StorageTaskSnapshot storedImage =
-        await ref.child('folder-name').putFile(File(file.path)).onComplete;
-    final String downloadUrl = await loadImage(storedImage);
-  }
-
-  //url取得
-  static Future<String> loadImage(StorageTaskSnapshot storedImage) async {
-    if (storedImage.error == null) {
-      print('storageに保存しました');
-      final String downloadUrl = await storedImage.ref.getDownloadURL();
-      return downloadUrl;
-    } else {
-      return null;
-    }
-  }
-}
+//class FileController {
+////storageに保存
+//  static void upload(File file) async {
+//    final StorageReference ref = FirebaseStorage.instance.ref();
+//    final StorageTaskSnapshot storedImage =
+//        await ref.child('folder-name').putFile(File(file.path)).onComplete;
+//    final String downloadUrl = await loadImage(storedImage);
+//  }
+//
+//  //url取得
+//  static Future<String> loadImage(StorageTaskSnapshot storedImage) async {
+//    if (storedImage.error == null) {
+//      print('storageに保存しました');
+//      final String downloadUrl = await storedImage.ref.getDownloadURL();
+//      return downloadUrl;
+//    } else {
+//      return null;
+//    }
+//  }
+//}
